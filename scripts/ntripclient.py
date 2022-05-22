@@ -67,7 +67,7 @@ class ntripconnect(Thread):
             ''' This now separates individual RTCM messages and publishes each one on the same topic '''
             data = response.read(1)
             if len(data) != 0:
-                if data[0] == 211:
+                if data[0] == 211:                   
                     buf += data
                     data = response.read(2)
                     buf += data
@@ -91,13 +91,13 @@ class ntripconnect(Thread):
             else:
                 ''' If zero length data, close connection and reopen it '''
                 restart_count = restart_count + 1
-                rospy.logwarn("Zero length ", restart_count)
+                rospy.logwarn("Zero length ".format(restart_count))
                 connection.close()
                 connection = HTTPConnection(self.ntc.ntrip_server)
                 connection.request('GET', '/'+self.ntc.ntrip_stream, self.ntc.nmea_gga, headers)
                 response = connection.getresponse()
                 if response.status != 200: raise Exception("blah")
-                buf = ""
+                buf = bytes('', 'utf-8')
 
         connection.close()
 
@@ -128,4 +128,3 @@ class ntripclient:
 if __name__ == '__main__':
     c = ntripclient()
     c.run()
-

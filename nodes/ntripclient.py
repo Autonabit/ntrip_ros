@@ -37,29 +37,29 @@ class NtripClient:
                 self.ntrip_pass)
 
         except OSError as error:
-            logging.error(error)
+            rospy.logerr(error)
             return
         while not rospy.is_shutdown():
             try:
-                rtcmFrame, timeStamp = await ntripstream.getRtcmFrame()
+                rtcmFrame, timeStamp = await asyncio.wait_for(ntripstream.getRtcmFrame(), timeout=10)
                 fail = 0
-            except (ConnectionError, IOError):
-                if fail >= retry:
-                    fail += 1
-                    sleepTime = 5 * fail
-                    if sleepTime > 300:
-                        sleepTime = 300
-                    logging.error(
-                        f"{mountPoint}:{fail} failed attempt to reconnect. "
-                        f"Will retry in {sleepTime} seconds!"
-                    )
-                    await asyncio.sleep(sleepTime)
-                    await procRtcmStream(url, mountPoint, user, passwd, fail)
-                else:
-                    fail += 1
-                    logging.warning(f"{mountPoint}:Reconnecting. Attempt no. {fail}.")
-                    await asyncio.sleep(2)
-                    await procRtcmStream(url, mountPoint, user, passwd, fail)
+            except (ConnectionError, IOError, asyncio.exceptions.TimeoutError):
+
+                fail += 1
+                sleepTime = 5 * fail
+                if sleepTime > 300:
+                    sleepTime = 300
+                rospy.logerr(
+                    f"{self.ntrip_stream}:{fail} failed attempts to reconnect. "
+                    f"Will retry in {sleepTime} seconds!"
+                )
+                await asyncio.sleep(sleepTime)
+                await ntripstream.requestNtripStream(
+                        self.ntrip_server,
+                        self.ntrip_stream,
+                        self.ntrip_user,
+                        self.ntrip_pass)
+ 
             else:
                 rtcm_msg.message = rtcmFrame.bytes
                 rtcm_msg.header.seq += 1

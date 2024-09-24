@@ -11,13 +11,11 @@ class NtripClient:
         rospy.init_node('ntripclient', anonymous=True)
 
         self.rtcm_topic = rospy.get_param('~rtcm_topic', 'rtcm')
-        self.nmea_topic = rospy.get_param('~nmea_topic', 'nmea')
-
         self.ntrip_server = rospy.get_param('~ntrip_server')
         self.ntrip_user = rospy.get_param('~ntrip_user')
         self.ntrip_pass = rospy.get_param('~ntrip_pass')
         self.ntrip_stream = rospy.get_param('~ntrip_stream')
-        self.nmea_gga = rospy.get_param('~nmea_gga')
+
 
         if not self.ntrip_server.startswith("http"):
             self.ntrip_server = "http://"+self.ntrip_server
